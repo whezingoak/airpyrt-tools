@@ -8,35 +8,38 @@ from .keystream import *
 
 def _generate_acp_header_key(password):
 	"""
-	Encrypt password for ACP message header key field
+	Criptografa a senha para o campo de chave do cabeçalho da mensagem ACP
 	
 	Note:
-		Truncates the password at 0x20 bytes, not sure if this is the right thing to use in all cases
+		Trunca a senha em 0x20 bytes, não tenho certeza se isso é o correto a se fazer em todos os casos
 	
 	Args:
-		password (str): system password of the router (syAP)
+		password (str): senha de sistema do roteador (syAP)
 	
 	Returns:
-		String containing encrypted password of proper length for the header field
+		Bytes contendo a senha criptografada com o comprimento adequado para o campo do cabeçalho
 	
 	"""
 	pw_len = 0x20
 	pw_key = generate_acp_keystream(pw_len)
 	
-	# pad with NULLs
-	pw_buf = password[:pw_len].ljust(pw_len, "\x00")
-	enc_pw_buf = ""
+	password_bytes = password.encode('utf-8')
+
+	# preenche com NULOs
+	pw_buf = password_bytes[:pw_len].ljust(pw_len, b'\x00')
+
+	enc_pw_buf = bytearray(pw_len)
 	for i in range(pw_len):
-		enc_pw_buf += chr(ord(pw_key[i]) ^ ord(pw_buf[i]))	
+		enc_pw_buf[i] = pw_key[i] ^ pw_buf[i]
 	
-	return enc_pw_buf
+	return bytes(enc_pw_buf)
 
 
 class ACPMessage(object):
-	"""ACP message composition and parsing"""
+	"""Composição e análise de mensagens ACP"""
 	
-	#XXX: struct is stupid about unpacking unsigned ints > 0x7fffffff, so treat everything as signed and
-	#     "cast" where necessary. Should we switch to using ctypes?
+	#XXX: o struct é estúpido ao desempacotar inteiros sem sinal > 0x7fffffff, então trate tudo como com sinal e
+	#     faça o "cast" onde for necessário. Deveríamos mudar para usar ctypes?
 	_header_format = struct.Struct("!4s8i12x32s48x")
 	_header_magic  = "acpp"
 	
@@ -50,13 +53,13 @@ class ACPMessage(object):
 		self.command = command
 		self.error_code = error_code
 		
-		# body is not specified, this is a stream header
+		# o corpo não é especificado, este é um cabeçalho de stream
 		if body == None:
-			# the body size is already specified, don't override it
+			# o tamanho do corpo já está especificado, não o sobrescreva
 			self.body_size = body_size if body_size != None else -1
-			self.body_checksum = 1 # equivalent to zlib.adler32("")
+			self.body_checksum = 1 # equivalente a zlib.adler32("")
 		else:
-			# the body size is already specified, don't override it
+			# o tamanho do corpo já está especificado, não o sobrescreva
 			self.body_size = body_size if body_size != None else len(body)
 			self.body_checksum = zlib.adler32(body)
 		
@@ -78,15 +81,15 @@ class ACPMessage(object):
 	
 	@classmethod
 	def parse_raw(cls, data):
-		# bail early if there is not enough data
+		# sai mais cedo se não houver dados suficientes
 		if len(data) < cls.header_size:
-			raise ACPMessageError("need to pass at least {0} bytes".format(cls.header_size))
+			raise ACPMessageError("é necessário passar pelo menos {0} bytes".format(cls.header_size))
 		header_data = data[:cls.header_size]
-		# make sure there's data beyond the header before we try to access it
+		# garante que há dados além do cabeçalho antes de tentarmos acessá-los
 		body_data = data[cls.header_size:] if len(data) > cls.header_size else None
 		
 		(magic, version, header_checksum, body_checksum, body_size, flags, unused, command, error_code, key) = cls._header_format.unpack(header_data)
-		logging.debug("ACP message header fields, parsed not validated")
+		logging.debug("Campos do cabeçalho da mensagem ACP, analisados mas não validados")
 		logging.debug("magic           {0!r}".format(magic))
 		logging.debug("header_checksum {0:#x}".format(header_checksum))
 		logging.debug("body_checksum   {0:#x}".format(body_checksum))
@@ -98,33 +101,33 @@ class ACPMessage(object):
 		logging.debug("key             {0!r}".format(key))
 		
 		if magic != cls._header_magic:
-			raise ACPMessageError("bad header magic")
+			raise ACPMessageError("magic do cabeçalho inválido")
 		
 		if version not in [0x00000001, 0x00030001]:
-			raise ACPMessageError("invalid version")
+			raise ACPMessageError("versão inválida")
 		
-		#TODO: can we zero the header_checksum field without recreating the struct (how?)
+		#TODO: podemos zerar o campo header_checksum sem recriar o struct (como?)
 		tmphdr = cls._header_format.pack(magic, version, 0, body_checksum, body_size, flags, unused, command, error_code, key)
 		if header_checksum != zlib.adler32(tmphdr):
-			raise ACPMessageError("header checksum does not match")
+			raise ACPMessageError("checksum do cabeçalho não corresponde")
 		
 		if body_data and body_size == -1:
-			raise ACPMessageError("cannot handle stream header with data attached")
+			raise ACPMessageError("não é possível lidar com cabeçalho de stream com dados anexados")
 		
 		if body_data and body_size != len(body_data):
-			raise ACPMessageError("message body size does not match available data")
+			raise ACPMessageError("o tamanho do corpo da mensagem não corresponde aos dados disponíveis")
 		
 		if body_data and body_checksum != zlib.adler32(body_data):
-			raise ACPMessageError("body checksum does not match")
+			raise ACPMessageError("checksum do corpo não corresponde")
 		
-		#TODO: check flags
+		#TODO: verificar flags
 		
-		#TODO: check status
+		#TODO: verificar status
 		
 		if command not in [1, 3, 4, 5, 6, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1a, 0x1b]:
-			raise ACPMessageError("unknown command")
+			raise ACPMessageError("comando desconhecido")
 		
-		#TODO: check error code
+		#TODO: verificar código de erro
 		
 		return cls(version, flags, unused, command, error_code, key, body_data, body_size)
 	
@@ -190,10 +193,10 @@ class ACPMessage(object):
 	
 	
 	def _compose_raw_packet(self):
-		"""Compose a request from the client to ACP daemon
+		"""Compõe uma requisição do cliente para o daemon ACP
 		
 		Returns:
-			String containing message to send
+			String contendo a mensagem a ser enviada
 		
 		"""
 		reply = self._compose_header()
@@ -204,10 +207,10 @@ class ACPMessage(object):
 	
 	
 	def _compose_header(self):
-		"""Compose the message header
+		"""Compõe o cabeçalho da mensagem
 		
 		Returns:
-			String containing header data
+			String contendo os dados do cabeçalho
 		
 		"""
 		tmphdr = self._header_format.pack(self._header_magic,

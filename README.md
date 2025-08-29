@@ -32,6 +32,14 @@ Se preferir instalar apenas para o seu usuário local (não requer root/sudo):
 python3 setup.py install --user
 ```
 
+### Desinstalação
+
+Para desinstalar o pacote, use o `pip`. Se você não tiver o `pip` instalado, instale-o primeiro (`apt-get install python3-pip` em sistemas Debian/Ubuntu).
+
+```bash
+pip3 uninstall acp
+```
+
 ### Uso
 
 `python -m acp`

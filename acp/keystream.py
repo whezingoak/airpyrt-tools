@@ -1,24 +1,22 @@
-"""Static key/seed for keystream generation"""
-ACP_STATIC_KEY = "5b6faf5d9d5b0e1351f2da1de7e8d673".decode("hex")
+import binascii
+
+"""Chave/semente estática para geração de keystream"""
+ACP_STATIC_KEY = binascii.unhexlify("5b6faf5d9d5b0e1351f2da1de7e8d673")
 
 def generate_acp_keystream(length):
-	"""Get key used to encrypt the header key (and some message data?)
+	"""Obtém a chave usada para criptografar a chave do cabeçalho (e alguns dados da mensagem?)
 	
 	Args:
-		length (int): length of keystream to generate
+		length (int): comprimento do keystream a ser gerado
 	
 	Returns:
-		String of requested length
+		Bytes do comprimento solicitado
 	
 	Note:
-		Keystream repeats every 256 bytes
+		O keystream se repete a cada 256 bytes
 	
 	"""
-	key = ""
-	key_idx = 0
-	
-	while (key_idx < length):
-		key += chr((key_idx + 0x55 & 0xFF) ^ ord(ACP_STATIC_KEY[key_idx % len(ACP_STATIC_KEY)]))
-		key_idx += 1
-	
-	return key
+	key = bytearray(length)
+	for key_idx in range(length):
+		key[key_idx] = (key_idx + 0x55 & 0xFF) ^ ACP_STATIC_KEY[key_idx % len(ACP_STATIC_KEY)]
+	return bytes(key)
