@@ -44,7 +44,7 @@ class ACPClient(object):
 	
 	def get_properties(self, prop_names=[]):
 		# solicita a propriedade enviando o nome e um valor "nulo"
-		payload = ""
+		payload = b""
 		for name in prop_names:
 			payload += ACPProperty.compose_raw_element(0, ACPProperty(name))
 		
@@ -90,7 +90,7 @@ class ACPClient(object):
 	
 	
 	def set_properties(self, props_dict={}):
-		payload = ""
+		payload = b""
 		for name, prop in props_dict.items():
 			logging.debug("prop: {0!r}".format(prop))
 			payload += ACPProperty.compose_raw_element(0, prop)
