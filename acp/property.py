@@ -1,3 +1,4 @@
+import binascii
 import logging
 import pprint
 import struct
@@ -7,14 +8,14 @@ from .exception import ACPPropertyError
 
 
 _acp_properties = [
-	# Uncomment and fill out relevant fields to add support for a property
-	# Properties must be in the following format:
-	# (name, type, description, validation), where
-	# name (required) is a 4 character string,
-	# type (required) is a valid property type (str, dec, hex, log, mac, cfb, bin)
-	# description (required) is a short, one-line description of the property
-	# validation (optional) is eval()d to verify the input value for setting a property
-	("buil","str","Build string?",""),
+	# Descomente e preencha os campos relevantes para adicionar suporte a uma propriedade
+	# As propriedades devem estar no seguinte formato:
+	# (nome, tipo, descricao, validacao), onde
+	# nome (obrigatório) é uma string de 4 caracteres,
+	# tipo (obrigatório) é um tipo de propriedade válido (str, dec, hex, log, mac, cfb, bin)
+	# descricao (obrigatório) é uma descrição curta de uma linha da propriedade
+	# validacao (opcional) é avaliada com eval() para verificar o valor de entrada ao definir uma propriedade
+	("buil","str","String de Build?",""),
 	("DynS","cfb","DNS",""),
 	#("cfpf","","",""),
 	#("cloC","","",""),
@@ -23,32 +24,32 @@ _acp_properties = [
 	("fire","cfb","Firewall???",""),
 	#("prob","","",""),
 	("srcv","str","Source Version",""),
-	("syNm","str","Device name",""),
+	("syNm","str","Nome do dispositivo",""),
 	#("syDN","","",""),
 	#("syPI","","",""),
-	("syPW","str","Router administration password",""),
-	("syPR","str","syPR string???",""),
-	("syGP","str","Router guest password???",""),
+	("syPW","str","Senha de administração do roteador",""),
+	("syPR","str","String syPR???",""),
+	("syGP","str","Senha de convidado do roteador???",""),
 	#("syCt","","",""),
 	#("syLo","","",""),
-	("syDs","str","System description",""),
-	("syVs","str","System version",""),
-	("syVr","str","System version???",""),
-	("syIn","str","System information???",""),
+	("syDs","str","Descrição do sistema",""),
+	("syVs","str","Versão do sistema",""),
+	("syVr","str","Versão do sistema???",""),
+	("syIn","str","Informações do sistema???",""),
 	("syFl","hex","????",""),
-	("syAM","str","Model Identifier",""),
-	("syAP","dec","Product ID",""),
-	("sySN","str","Apple Serial Number",""),
+	("syAM","str","Identificador do modelo",""),
+	("syAP","dec","ID do produto",""),
+	("sySN","str","Número de série da Apple",""),
 	#("ssSN","","",""),
 	#("sySK","","",""),
-	("ssSK","str","Apple SKU",""),
+	("ssSK","str","SKU da Apple",""),
 	#("syRe","","",""),
-	("syLR","cfb","syLR Blob",""),
-	("syAR","cfb","syAR Blob",""),
-	("syUT","dec","System Uptime",""),
+	("syLR","cfb","Blob syLR",""),
+	("syAR","cfb","Blob syAR",""),
+	("syUT","dec","Tempo de atividade do sistema",""),
 	#("minV","","",""),
 	("minS","str","apple-minver",""),
-	("chip","str","SoC Description",""),
+	("chip","str","Descrição do SoC",""),
 	#("card","","",""),
 	#("memF","","",""),
 	#("pool","","",""),
@@ -61,11 +62,11 @@ _acp_properties = [
 	#("sPLL","","",""),
 	#("syTL","","",""),
 	#("syST","","",""),
-	("sySt","cfb","System Status",""),
+	("sySt","cfb","Status do sistema",""),
 	#("syIg","","",""),
-	("syBL","str","Bootloader vesrsion string",""),
-	("time","dec","System time",""),
-	("timz","cfb","Timezone Config Blob",""),
+	("syBL","str","String de versão do bootloader",""),
+	("time","dec","Hora do sistema",""),
+	("timz","cfb","Blob de configuração de fuso horário",""),
 	("usrd","cfb","usrd???",""),
 	#("uuid","","",""),
 	#("drTY","","",""),
@@ -74,12 +75,12 @@ _acp_properties = [
 	#("stat","","",""),
 	#("sRnd","","",""),
 	#("Accl","","",""),
-	("dSpn","cfb","Disk spin status?",""),
-	("syMS","str","MLB Serial Number",""),
+	("dSpn","cfb","Status de rotação do disco?",""),
+	("syMS","str","Número de série da MLB",""),
 	#("IGMP","","",""),
 	("diag","bin","diag???",""),
 	#("paFR","","",""),
-	("raNm","str","Radio Name",""),
+	("raNm","str","Nome do rádio",""),
 	#("raCl","","",""),
 	#("raSk","","",""),
 	#("raWM","","",""),
@@ -102,7 +103,7 @@ _acp_properties = [
 	#("raLF","","",""),
 	#("ra1C","","",""),
 	#("raVs","","",""),
-	("raMA","mac","Radio MAC Address",""),
+	("raMA","mac","Endereço MAC do rádio",""),
 	#("raM2","","",""),
 	#("raMO","","",""),
 	#("raLO","","",""),
@@ -128,16 +129,16 @@ _acp_properties = [
 	#("raTX","","",""),
 	#("raRX","","",""),
 	#("raAC","","",""),
-	("raSL","cfb","Radios list?",""),
+	("raSL","cfb","Lista de rádios?",""),
 	#("raMI","","",""),
 	#("raST","","",""),
 	#("raDy","","",""),
 	#("raEV","","",""),
 	#("rTSN","","",""),
-	("raSR","cfb","Radio scan results?",""),
+	("raSR","cfb","Resultados da varredura de rádio?",""),
 	#("eaRA","","",""),
-	("WiFi","cfb","Wifi configuration?",""),
-	("rCAL","cfb","Radio calibration data?",""),
+	("WiFi","cfb","Configuração do Wifi?",""),
+	("rCAL","cfb","Dados de calibração do rádio?",""),
 	#("moPN","","",""),
 	#("moAP","","",""),
 	#("moUN","","",""),
@@ -170,20 +171,20 @@ _acp_properties = [
 	#("peAC","","",""),
 	#("peID","","",""),
 	#("peAO","","",""),
-	("waCV","bin","WAN Config Mode?",""),
-	("waIn","bin","WAN Interface Mode?",""),
+	("waCV","bin","Modo de configuração da WAN?",""),
+	("waIn","bin","Modo de interface da WAN?",""),
 	#("waD1","","",""),
 	#("waD2","","",""),
 	#("waD3","","",""),
 	#("waC1","","",""),
 	#("waC2","","",""),
 	#("waC3","","",""),
-	("waIP","bin","WAN IP",""),
+	("waIP","bin","IP da WAN",""),
 	#("waSM","","",""),
-	("waRA","bin","WAN Upstream Gateway IP",""),
+	("waRA","bin","IP do gateway upstream da WAN",""),
 	#("waDC","","",""),
 	#("waDS","","",""),
-	("waMA","mac","WAN MAC Address",""),
+	("waMA","mac","Endereço MAC da WAN",""),
 	#("waMO","","",""),
 	#("waDN","","",""),
 	#("waCD","","",""),
@@ -197,7 +198,7 @@ _acp_properties = [
 	#("waW3","","",""),
 	#("waLL","","",""),
 	#("waUB","","",""),
-	("waDI","cfb","WAN DHCP Info?",""),
+	("waDI","cfb","Informações DHCP da WAN?",""),
 	#("laCV","","",""),
 	#("laIP","","",""),
 	#("laSM","","",""),
@@ -205,7 +206,7 @@ _acp_properties = [
 	#("laDC","","",""),
 	#("laDS","","",""),
 	#("laNA","","",""),
-	("laMA","mac","LAN MAC Address",""),
+	("laMA","mac","Endereço MAC da LAN",""),
 	#("laIS","","",""),
 	#("laSD","","",""),
 	#("laIA","","",""),
@@ -220,13 +221,13 @@ _acp_properties = [
 	#("dhLe","","",""),
 	#("dhMg","","",""),
 	#("dh95","","",""),
-	("DRes","cfb","DHCP Reservations",""),
+	("DRes","cfb","Reservas DHCP",""),
 	#("dhWA","","",""),
 	#("dhDS","","",""),
 	#("dhDB","","",""),
 	#("dhDE","","",""),
 	#("dhDL","","",""),
-	("dhSL","cfb","DHCP Server leases?",""),
+	("dhSL","cfb","Concessões do servidor DHCP?",""),
 	#("gnFl","","",""),
 	#("gnBg","","",""),
 	#("gnEn","","",""),
@@ -249,7 +250,7 @@ _acp_properties = [
 	#("pmTa","","",""),
 	#("acEn","","",""),
 	#("acTa","","",""),
-	("tACL","cfb","Timed Access Control",""),
+	("tACL","cfb","Controle de Acesso Temporizado",""),
 	#("wdFl","","",""),
 	#("wdLs","","",""),
 	#("dWDS","","",""),
@@ -270,15 +271,15 @@ _acp_properties = [
 	#("raS2","","",""),
 	#("raR2","","",""),
 	#("raCi","","",""),
-	("ntSV","str","NTP Server Hostname",""),
+	("ntSV","str","Hostname do servidor NTP",""),
 	#("ntpC","","",""),
 	#("smtp","","",""),
 	#("slog","","",""),
 	#("slgC","","",""),
 	#("slCl","","",""),
-	("slvl","dec","System log severity level?",""),
+	("slvl","dec","Nível de severidade do log do sistema?",""),
 	#("slfl","","",""),
-	("logm","log","System log data",""),
+	("logm","log","Dados do log do sistema",""),
 	#("snAF","","",""),
 	#("snLW","","",""),
 	#("snLL","","",""),
@@ -291,7 +292,7 @@ _acp_properties = [
 	#("srtF","","",""),
 	#("upsF","","",""),
 	#("usbF","","",""),
-	("USBi","cfb","USB Info",""),
+	("USBi","cfb","Informações do USB",""),
 	#("USBL","","",""),
 	#("USBR","","",""),
 	#("USBO","","",""),
@@ -300,13 +301,13 @@ _acp_properties = [
 	#("USBh","","",""),
 	#("USBb","","",""),
 	#("USBn","","",""),
-	("prni","cfb","Printer Info?",""),
+	("prni","cfb","Informações da impressora?",""),
 	#("prnM","","",""),
 	#("prnI","","",""),
 	#("prnR","","",""),
 	#("RUdv","","",""),
 	#("RUfl","","",""),
-	("MaSt","cfb","USB Mass Storage Info",""),
+	("MaSt","cfb","Informações de armazenamento em massa USB",""),
 	#("SMBw","","",""),
 	#("SMBs","","",""),
 	#("fssp","","",""),
@@ -323,7 +324,7 @@ _acp_properties = [
 	("seFl","bin","????",""), #????
 	#("nvVs","","",""),
 	#("dbRC","","",""),
-	("dbug","hex","Debug flags","0 <= value <= 0xFFFFFFFF"),
+	("dbug","hex","Flags de depuração","0 <= value <= 0xFFFFFFFF"),
 	#("dlvl","","",""),
 	#("dcmd","","",""),
 	#("dsps","","",""),
@@ -343,22 +344,22 @@ _acp_properties = [
 	#("evtL","","",""),
 	#("isAC","","",""),
 	#("Adet","","",""),
-	("Prof","cfb","Restore Profile Blob",""),
+	("Prof","cfb","Blob de restauração de perfil",""),
 	#("maAl","","",""),
 	#("maPr","","",""),
 	#("leAc","","",""),
 	#("APID","","",""),
 	#("AAU ","","",""),
-	("lcVs","str","lcVs Version String?",""),
+	("lcVs","str","String de versão lcVs?",""),
 	#("lcVr","","",""),
 	#("lcmV","","",""),
 	#("lcMV","","",""),
 	#("iMTU","","",""),
-	("wsci","cfb","wsci Blob",""),
+	("wsci","cfb","Blob wsci",""),
 	#("FlSu","","",""),
 	("OTPR","hex","machdep.otpval",""),
-	("acRB","dec","Reboot device flag","value == 0"),
-	("acRI","dec","Reload services??","value == 0"),
+	("acRB","dec","Flag de reinicialização do dispositivo","value == 0"),
+	("acRI","dec","Recarregar serviços??","value == 0"),
 	#("acPC","","",""),
 	#("acDD","","",""),
 	#("acPD","","",""),
@@ -366,21 +367,21 @@ _acp_properties = [
 	#("acDS","","",""),
 	#("acFN","","",""),
 	#("acRP","","",""),
-	("acRN","dec","Resets something... (?)","value == 0"),
-	("acRF","dec","Reset to factory defaults","value == 0"),
+	("acRN","dec","Reseta algo... (?)","value == 0"),
+	("acRF","dec","Redefinir para padrões de fábrica","value == 0"),
 	#("MdmH","","",""),
 	#("dirf","","",""),
 	#("Afrc","","",""),
 	#("lebl","","",""),
 	#("lebs","","",""),
-	("LEDc","dec","LED color/pattern","0 <= value <= 3"),
+	("LEDc","dec","Cor/padrão do LED","0 <= value <= 3"),
 	#("acEf","","",""),
 	#("invr","","",""),
 	#("FLSH","","",""),
 	#("acPL","","",""),
 	#("rReg","","",""),
 	#("dReg","","",""),
-	("GPIs","bin","GPIOs values","len(value) == 8"),
+	("GPIs","bin","Valores de GPIOs","len(value) == 8"),
 	#("play","","",""),
 	#("paus","","",""),
 	#("ffwd","","",""),
@@ -425,8 +426,8 @@ _acp_properties = [
 	#("auSl","","",""),
 	#("auFl","","",""),
 	("fe01","hex","????",""),
-	("feat","str","Supported features?",""),
-	("prop","str","Valid acp properties",""),
+	("feat","str","Recursos suportados?",""),
+	("prop","str","Propriedades acp válidas",""),
 	("hw01","hex","????",""),
 	#("fltr","","",""),
 	#("wdel","","",""),
@@ -454,16 +455,16 @@ _acp_properties = [
 	#("SpTr","","",""),
 	#("dRBT","","",""),
 	#("dRIR","","",""),
-	("pECC","cfb","PCIe ECC Blob?",""),
+	("pECC","cfb","Blob ECC do PCIe?",""),
 	#("fxEB","","",""),
 	#("fxID","","",""),
 	#("fuup","","",""),
 	#("fust","","",""),
 	#("fuca","","",""),
-	("fugp","str","Firmware upgrade progress",""),
-	("cks0","hex","Bootloader Flash Checksum",""),
-	("cks1","hex","Primary Flash Checksum",""),
-	("cks2","hex","Secondary Flash Checksum",""),
+	("fugp","str","Progresso da atualização de firmware",""),
+	("cks0","hex","Checksum do Flash do Bootloader",""),
+	("cks1","hex","Checksum do Flash Primário",""),
+	("cks2","hex","Checksum do Flash Secundário",""),
 	#("ddBg","","",""),
 	#("ddEn","","",""),
 	#("ddIn","","",""),
@@ -553,10 +554,10 @@ _acp_properties = [
 def _generate_acp_property_dict():	
 	props = {}
 	for (name, type, description, validation) in _acp_properties:
-		# basic validation of tuples
-		assert len(name) == 4, "bad name in _acp_properties list: {0}".format(name)
-		assert type in ["str", "dec", "hex", "log", "mac", "cfb", "bin"], "bad type in _acp_properties list for name: {0}".format(name)
-		assert description, "missing description in _acp_properties list for name: {0}".format(name)
+		# validação básica das tuplas
+		assert len(name) == 4, "nome inválido na lista _acp_properties: {0}".format(name)
+		assert type in ["str", "dec", "hex", "log", "mac", "cfb", "bin"], "tipo inválido na lista _acp_properties para o nome: {0}".format(name)
+		assert description, "descrição ausente na lista _acp_properties para o nome: {0}".format(name)
 		props[name] = dict(type=type, description=description, validation=validation)
 	return props
 
@@ -573,98 +574,105 @@ class ACPProperty(object):
 	
 	
 	def __init__(self, name=None, value=None):
-		# handle "null" property packed name and value first
-		if name == "\x00\x00\x00\x00" and value == "\x00\x00\x00\x00":
+		# lida primeiro com o nome e valor da propriedade "nula" empacotada
+		if name == b"\x00\x00\x00\x00" and value == b"\x00\x00\x00\x00":
 			name = None
 			value = None
 		
 		if name and name not in self.get_supported_property_names():
-			raise ACPPropertyError("invalid property name passed to initializer: {0}".format(name))
+			raise ACPPropertyError("nome de propriedade inválido passado para o inicializador: {0}".format(name))
 		
 		if value is not None:
-			# accept value as packed binary string or Python type
+			# aceita o valor como uma string binária empacotada ou tipo Python
 			prop_type = self.get_property_info_string(name, "type")
 			_init_handler_name = "_init_{0}".format(prop_type)
-			assert hasattr(self, _init_handler_name), "missing init handler for \"{0}\" property type".format(prop_type)
+			assert hasattr(self, _init_handler_name), "manipulador de inicialização ausente para o tipo de propriedade \"{0}\"".format(prop_type)
 			_init_handler = getattr(self, _init_handler_name)
 			
-			logging.debug("old value: {0!r} type: {1}".format(value, type(value)))
+			logging.debug("valor antigo: {0!r} tipo: {1}".format(value, type(value)))
 			try:
 				value = _init_handler(value)
 			except ACPPropertyInitValueError as e:
-				raise ACPPropertyError("{0!s} provided for \"{1}\" property type: {2!r}".format(e, prop_type, value))
-			logging.debug("new value: {0!r} type: {1}".format(value, type(value)))
+				raise ACPPropertyError("{0!s} fornecido para o tipo de propriedade \"{1}\": {2!r}".format(e, prop_type, value))
+			logging.debug("novo valor: {0!r} tipo: {1}".format(value, type(value)))
 			
-			#XXX: this is still really hacky, should probably do something with anonymous functions or introspection
+			#XXX: isso ainda é muito gambiarra, provavelmente deveria fazer algo com funções anônimas ou introspecção
 			validation_expr = self.get_property_info_string(name, "validation")
 			if validation_expr and not eval(validation_expr):
-				raise ACPPropertyError("invalid value passed to initializer for property \"{0}\": {1}".format(name, repr(value)))
+				raise ACPPropertyError("valor inválido passado para o inicializador da propriedade \"{0}\": {1}".format(name, repr(value)))
 		
 		self.name = name
 		self.value = value
 	
 	def _init_dec(self, value):
-		if   type(value) == int:
+		if   isinstance(value, int):
 			return value
-		elif type(value) == str:
+		elif isinstance(value, bytes):
 			try:
 				return struct.unpack("!I", value)[0]
 			except:
-				raise ACPPropertyInitValueError("invalid packed binary string")
+				raise ACPPropertyInitValueError("string binária empacotada inválida")
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_hex(self, value):
-		if   type(value) == int:
+		if   isinstance(value, int):
 			return value
-		elif type(value) == str:
+		elif isinstance(value, bytes):
 			try:
 				return struct.unpack("!I", value)[0]
 			except:
-				raise ACPPropertyInitValueError("invalid packed binary string")
+				raise ACPPropertyInitValueError("string binária empacotada inválida")
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_mac(self, value):
-		if type(value) == str:
-			# first, try as packed binary value
+		if isinstance(value, bytes):
+			# valor binário empacotado
 			if len(value) == 6:
 				return value
-			# second, attempt to unpack colon delimited value
+			else:
+				raise ACPPropertyInitValueError("valor de bytes empacotado inválido")
+		elif isinstance(value, str):
+			# valor delimitado por dois pontos
 			mac_bytes = value.split(":")
 			if len(mac_bytes) == 6:
 				try:
-					return "".join(mac_bytes).decode("hex")
-				except TypeError:
-					raise ACPPropertyInitValueError("non-hex digit in value")
+					return binascii.unhexlify("".join(mac_bytes))
+				except binascii.Error:
+					raise ACPPropertyInitValueError("dígito não hexadecimal no valor")
 			# fallthrough
-			raise ACPPropertyInitValueError("invalid value")
+			raise ACPPropertyInitValueError("valor de string inválido")
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_bin(self, value):
-		if type(value) == str:
+		if isinstance(value, bytes):
 			return value
+		elif isinstance(value, str):
+			return value.encode('utf-8') # Assuming UTF-8 for strings from user
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_cfb(self, value):
-		if type(value) == str:
+		if isinstance(value, bytes):
 			return value
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_log(self, value):
-		if type(value) == str:
+		if isinstance(value, bytes):
 			return value
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	def _init_str(self, value):
-		if type(value) == str:
+		if isinstance(value, str):
 			return value
+		elif isinstance(value, bytes):
+			return value.decode('utf-8').rstrip('\x00')
 		else:
-			raise ACPPropertyInitValueError("invalid built-in type")
+			raise ACPPropertyInitValueError("tipo embutido inválido")
 	
 	
 	def __repr__(self):
@@ -672,15 +680,15 @@ class ACPProperty(object):
 		return repr((self.name, self.value))
 	
 	
-	#TODO: make this function return something other than the formatted value of the property...I keep getting confused by its current shittiness
+	#TODO: fazer esta função retornar algo diferente do valor formatado da propriedade... continuo me confundindo com a sua ruindade atual
 	def __str__(self):
-		#XXX: is this the correct thing to do?
+		#XXX: isso é a coisa certa a se fazer?
 		if self.name is None or self.value is None:
 			return ""
 		
 		prop_type = self.get_property_info_string(self.name, "type")
 		_format_handler_name = "_format_{0}".format(prop_type)
-		assert hasattr(self, _format_handler_name), "missing format handler for \"{0}\" property type".format(prop_type)
+		assert hasattr(self, _format_handler_name), "manipulador de formato ausente para o tipo de propriedade \"{0}\"".format(prop_type)
 		return getattr(self, _format_handler_name)(self.value)
 	
 	def _format_dec(self, value):
@@ -690,22 +698,18 @@ class ACPProperty(object):
 		return hex(value)
 	
 	def _format_mac(self, value):
-		mac_bytes = []
-		for i in range(6):
-			mac_bytes.append(value[i].encode("hex"))
-		return "{0}:{1}:{2}:{3}:{4}:{5}".format(*mac_bytes)
+		return ":".join("{:02x}".format(b) for b in value)
 	
 	def _format_bin(self, value):
-		return value.encode("hex")
+		return binascii.hexlify(value).decode('ascii')
 	
 	def _format_cfb(self, value):
 		return pprint.pformat(CFLBinaryPListParser.parse(value))
 	
 	def _format_log(self, value):
-		s = ""
-		for line in value.strip("\x00").split("\x00"):
-			s += "{0}\n".format(line)
-		return s
+		# Assuming the log is latin-1 or some other 8-bit encoding.
+		# It's definitely not UTF-8.
+		return value.decode('latin-1').replace('\x00', '\n')
 	
 	def _format_str(self, value):
 		return value
@@ -751,18 +755,26 @@ class ACPProperty(object):
 	
 	@classmethod
 	def compose_raw_element(cls, flags, property):
-		#TODO: handle flags!???
-		#XXX: handles "null" name or value first, but this is currently garbage
-		name = property.name if property.name is not None else "\x00\x00\x00\x00"
-		value = property.value if property.value is not None else "\x00\x00\x00\x00"
-		if   type(value) == int:
+		#TODO: lidar com flags!???
+		#XXX: lida primeiro com o nome ou valor "nulo", mas isso atualmente é lixo
+		name = property.name.encode('ascii') if property.name is not None else b"\x00\x00\x00\x00"
+		value = property.value
+
+		if value is None:
+			value = b"\x00\x00\x00\x00"
+
+		if isinstance(value, int):
 			st = struct.Struct(">I")
-			#XXX: this could throw an exception, we need to range check int/hex values to ensure they pack into 32 bits still
+			#XXX: isso pode lançar uma exceção, ainda precisamos verificar o intervalo de valores int/hex para garantir que eles sejam empacotados em 32 bits
 			return cls.compose_raw_element_header(name, flags, st.size) + st.pack(value)
-		elif type(value) == str:
+		elif isinstance(value, str):
+			# Assume string properties are UTF-8
+			value_bytes = value.encode('utf-8')
+			return cls.compose_raw_element_header(name, flags, len(value_bytes)) + value_bytes
+		elif isinstance(value, bytes):
 			return cls.compose_raw_element_header(name, flags, len(value)) + value
 		else:
-			raise ACPPropertyError("unhandled property type for raw element composition")
+			raise ACPPropertyError("tipo de propriedade não tratado para composição de elemento bruto")
 	
 	
 	@classmethod

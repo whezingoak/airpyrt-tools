@@ -1,10 +1,11 @@
+import binascii
 from Crypto.Cipher import AES
 from Crypto.Protocol import KDF
 from Crypto.Util import Counter
 
 
-PBKDF_salt0 = "F072FA3F66B410A135FAE8E6D1D43D5F".decode("hex")
-PBKDF_salt1 = "BD0682C9FE79325BC73655F4174B996C".decode("hex")
+PBKDF_salt0 = binascii.unhexlify("F072FA3F66B410A135FAE8E6D1D43D5F")
+PBKDF_salt1 = binascii.unhexlify("BD0682C9FE79325BC73655F4174B996C")
 
 
 class _ACPEncryptionContext(object):
@@ -12,7 +13,7 @@ class _ACPEncryptionContext(object):
 		self.key = key
 		self.iv = iv
 		
-		self.ctr = Counter.new(128, initial_value=int(iv.encode("hex"), 16))
+		self.ctr = Counter.new(128, initial_value=int(binascii.hexlify(iv), 16))
 		self.cipher = AES.new(key, AES.MODE_CTR, counter=self.ctr)
 
 
