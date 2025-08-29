@@ -9,6 +9,11 @@ Veja o arquivo LICENSE.
 - Python 3.11
 - pycryptodome
 
+Em sistemas baseados em Debian (como o Debian 12 e o Ubuntu), você também precisará do pacote `setuptools` para a instalação. Você pode instalá-lo com o seguinte comando:
+```bash
+apt-get update && apt-get install python3-setuptools
+```
+
 ### Compatibilidade
 
 Este programa foi testado e funciona no **macOS** e **Debian 12**.
@@ -17,7 +22,15 @@ Este programa foi testado e funciona no **macOS** e **Debian 12**.
 
 ### Instalação
 
-`python setup.py install [--user]`
+Para instalar as ferramentas no seu sistema (requer permissões de root/sudo):
+```bash
+python3 setup.py install
+```
+
+Se preferir instalar apenas para o seu usuário local (não requer root/sudo):
+```bash
+python3 setup.py install --user
+```
 
 ### Uso
 
