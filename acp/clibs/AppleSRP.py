@@ -1,7 +1,8 @@
+import binascii
 from ctypes import *
 
 
-#XXX: hax to display NULL pointer thingies
+#XXX: gambiarra para exibir ponteiros NULOS
 def _fmt_void_ptr(value):
 	if value is None:
 		return 0
@@ -10,7 +11,7 @@ def _fmt_void_ptr(value):
 def _fmt_cstr(value):
 	if cast(value, c_void_p).value is None:
 		return "<null cstr>"
-	return value.contents.get_data_buffer().encode("hex")
+	return binascii.hexlify(value.contents.get_data_buffer()).decode('ascii')
 
 def _fmt_ccz_class(value):
 	if cast(value, c_void_p).value is None:
@@ -32,7 +33,7 @@ class cstr(Structure):
 	
 	def __str__(self):
 		s =  "cstr:  {0!r}\n".format(self)
-		s += "data:  {0}\n".format(self.get_data_buffer().encode("hex"))
+		s += "data:  {0}\n".format(binascii.hexlify(self.get_data_buffer()).decode('ascii'))
 		s += "len:   {0}\n".format(self.length)
 		s += "cap:   {0}\n".format(self.cap)
 		s += "ref:   {0}\n".format(self.ref)
@@ -60,7 +61,7 @@ class SHA1_CTX(Structure):
 	            ("h4", c_uint),
 	            ("Nl", c_uint),
 	            ("Nh", c_uint),
-	            ("data", c_uint * 16), # uninitialized data???
+	            ("data", c_uint * 16), # dados não inicializados???
 	            ("num", c_uint)]
 	
 	def __str__(self):
@@ -72,7 +73,7 @@ class SHA1_CTX(Structure):
 		s += "h4:       {0:#x}\n".format(self.h4)
 		s += "Nl:       {0}\n".format(self.Nl)
 		s += "Nh:       {0}\n".format(self.Nh)
-		s += "data:     {0}\n".format("".join(["{0:08x}".format(self.data[i]) for i in range(16)])) # uninitialized data???
+		s += "data:     {0}\n".format("".join(["{0:08x}".format(self.data[i]) for i in range(16)])) # dados não inicializados???
 		s += "num:      {0}".format(self.num)
 		return s
 

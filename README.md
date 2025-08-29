@@ -1,24 +1,27 @@
-# AirPyrt Tools
+# Ferramentas AirPyrt
 
-### License
+### Licença
 
-See LICENSE
+Veja o arquivo LICENSE.
 
+### Requisitos
 
-### Requirements
+- Python 3.11
+- pycryptodome
 
-- python 2.7
-- pycrypto
+### Compatibilidade
 
+Este programa foi testado e funciona no **macOS** e **Debian 12**.
 
-### Installation
+**Atenção:** A funcionalidade de autenticação SRP (`--srp-test`) depende de uma biblioteca nativa do macOS e, portanto, só funcionará em sistemas da Apple. Todas as outras funcionalidades do programa são compatíveis com Debian 12.
+
+### Instalação
 
 `python setup.py install [--user]`
 
+### Uso
 
-### Usage
-
-`python [-B] -m acp`
+`python -m acp`
 
     usage: __main__.py [-h] [-t address] [-p password] [--listprop]
                        [--helpprop property] [--getprop property]
@@ -28,77 +31,68 @@ See LICENSE
                        [--decrypt inpath outpath] [--extract inpath outpath]
                        [--srp-test]
 
-    optional arguments:
-      -h, --help            show this help message and exit
+    Argumentos opcionais:
+      -h, --help            mostra esta mensagem de ajuda e sai
 
-    AirPort client parameters:
+    Parâmetros do cliente AirPort:
       -t address, --target address
-                            IP address or hostname of the target router
+                            Endereço IP ou hostname do roteador alvo
       -p password, --password password
-                            router admin password
+                            Senha de administrador do roteador
 
-    AirPort client commands:
-      --listprop            list supported properties
-      --helpprop property   print the description of the specified property
-      --getprop property    get the value of the specified property
+    Comandos do cliente AirPort:
+      --listprop            lista as propriedades suportadas
+      --helpprop property   imprime a descrição da propriedade especificada
+      --getprop property    obtém o valor da propriedade especificada
       --setprop property value
-                            set the value of the specified property
-      --dumpprop            dump values of all supported properties
-      --acpprop             get acp acpprop list
-      --dump-syslog         dump the router system log
-      --reboot              reboot device
-      --factory-reset       RESET EVERYTHING and reboot; you have been warned!
+                            define o valor da propriedade especificada
+      --dumpprop            exibe os valores de todas as propriedades suportadas
+      --acpprop             obtém a lista acp acpprop
+      --dump-syslog         exibe o log de sistema do roteador
+      --reboot              reinicia o dispositivo
+      --factory-reset       RESETA TUDO e reinicia; você foi avisado!
       --flash-primary firmware_path
-                            flash primary partition firmware
-      --do-feat-command     send 0x1b (feat) command
+                            flasheia o firmware da partição primária
+      --do-feat-command     envia o comando 0x1b (feat)
 
-    Basebinary commands:
+    Comandos de basebinary:
       --decrypt inpath outpath
-                            decrypt the basebinary
+                            descriptografa o basebinary
       --extract inpath outpath
-                            extract the gzimg contents
+                            extrai o conteúdo do gzimg
 
-    Test arguments:
-      --srp-test            SRP (requires OS X)
-
-
-### Notes
-
-**IMPORTANT**
-
-This still uses the old ACP protocol implementation, which puts the admin password
-of the device over the wire in a trivially recoverable format. This was fixed by 
-in the new protocol which uses SRP authentication and better encryption of requests
-to/from the device. Until this is implemented this tool is entirely unsafe to use,
-especially for remote administration (which you should have disabled anyway...).
-
-This project grew organically out of my understanding of various pieces of the ACP 
-protocol. I've restructured the code a few times as it has improved, but there are 
-still many gaps in the implementation, and a lot of code smell. Between sitting on
-this indefinitely making incremental improvements (and probably never releasing a 
-"finished" product) and releasing it in a rougher state for others to explore, the
-latter made far more sense.
-
-Return value of 0xfffffff6 when using --getprop means the property is not avaliable/readable
+    Argumentos de teste:
+      --srp-test            SRP (requer macOS)
 
 
-## TODO (very incomplete list in no particular order)
+### Notas
 
-- add IP address type for properties, make sure it supports IPv4 and IPv6
-- specify RO/WO/RW attribute for properties
-- exception handling:
-  - invalid struct fields aren't handled well in many cases
-  - finish adding custom exception classes and make sure we're using them
-- logging (mostly done, still looks horrible) with verbosity controls
-- review and update docstrings
-- SRP support (fix pysrp because ctypes hax, while fun, are horrible and non-portable)
-- ACP protocol version 2 (full session encryption)
-- handle encrypted property elements
-- basebinary repacking/reencryption
-- basebinary rootfs mounting
-- threaded server
-- handle protocol v1 (for old firmwares/devices)
-- bonjour announcement/discovery
-- options to specify no encryption, old method, and new (SRP) method
-- ACPMonitorSession support
-- ACPRPC support
+**IMPORTANTE**
+
+Esta ferramenta ainda usa a implementação antiga do protocolo ACP, que envia a senha de administrador do dispositivo pela rede em um formato facilmente recuperável. Isso foi corrigido no novo protocolo, que usa autenticação SRP e uma criptografia melhor para as requisições de e para o dispositivo. Até que isso seja implementado, esta ferramenta é totalmente insegura para uso, especialmente para administração remota (que você já deveria ter desabilitado de qualquer maneira...).
+
+Este projeto cresceu organicamente a partir do meu entendimento de várias partes do protocolo ACP. Eu reestruturei o código algumas vezes à medida que ele melhorou, mas ainda existem muitas lacunas na implementação e muito "código fedorento". Entre guardar isso indefinidamente fazendo melhorias incrementais (e provavelmente nunca lançar um produto "acabado") e lançá-lo em um estado mais bruto para que outros possam explorar, a segunda opção fez muito mais sentido.
+
+Um valor de retorno de `0xfffffff6` ao usar `--getprop` significa que a propriedade não está disponível/legível.
+
+
+## TODO (lista muito incompleta e sem ordem particular)
+
+- adicionar tipo de endereço IP para propriedades, garantindo suporte a IPv4 e IPv6
+- especificar atributo RO/WO/RW para propriedades
+- tratamento de exceções:
+  - campos de struct inválidos não são bem tratados em muitos casos
+  - terminar de adicionar classes de exceção personalizadas e garantir que estamos usando-as
+- logging (quase pronto, mas ainda parece horrível) com controles de verbosidade
+- revisar e atualizar docstrings
+- suporte a SRP (corrigir o pysrp porque gambiarras com ctypes, embora divertidas, são horríveis e não portáteis)
+- suporte ao protocolo ACP versão 2 (criptografia de sessão completa)
+- lidar com elementos de propriedade criptografados
+- reempacotamento/recriptografia do basebinary
+- montagem do rootfs do basebinary
+- servidor com threads
+- lidar com o protocolo v1 (para firmwares/dispositivos antigos)
+- anúncio/descoberta via Bonjour
+- opções para especificar sem criptografia, método antigo e novo método (SRP)
+- suporte a ACPMonitorSession
+- suporte a ACPRPC
